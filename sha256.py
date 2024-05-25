@@ -1,6 +1,3 @@
-"""This Python module is an implementation of the SHA-256 algorithm.
-From https://github.com/keanemind/Python-SHA-256"""
-
 K = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -27,17 +24,17 @@ def generate_hash(message: bytearray) -> bytearray:
     # Padding
     length = len(message) * 8 # len(message) is number of BYTES!!!
     message.append(0x80)
-    while (len(message) * 8 + 64) % 512 != 0:
+    while (len(message) * 8 + 64) % 5120 != 0:
         message.append(0x00)
 
     message += length.to_bytes(8, 'big') # pad to 8 bytes or 64 bits
 
-    assert (len(message) * 8) % 512 == 0, "Padding did not complete properly!"
+    assert (len(message) * 8) % 5120 == 0, "Padding did not complete properly!"
 
     # Parsing
     blocks = [] # contains 512-bit chunks of message
-    for i in range(0, len(message), 64): # 64 bytes is 512 bits
-        blocks.append(message[i:i+64])
+    for i in range(0, len(message), 640): # 64 bytes is 512 bits
+        blocks.append(message[i:i+640])
 
     # Setting Initial Hash Value
     h0 = 0x6a09e667
@@ -53,7 +50,7 @@ def generate_hash(message: bytearray) -> bytearray:
     for message_block in blocks:
         # Prepare message schedule
         message_schedule = []
-        for t in range(0, 64):
+        for t in range(0, 64000):
             if t <= 15:
                 # adds the t'th 32 bit word of the block,
                 # starting from leftmost word
@@ -69,7 +66,7 @@ def generate_hash(message: bytearray) -> bytearray:
                 schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, 'big')
                 message_schedule.append(schedule)
 
-        assert len(message_schedule) == 64
+        assert len(message_schedule) == 64000
 
         # Initialize working variables
         a = h0
@@ -84,18 +81,18 @@ def generate_hash(message: bytearray) -> bytearray:
         # Iterate for t=0 to 63
         for t in range(64):
             t1 = ((h + _capsigma1(e) + _ch(e, f, g) + K[t] +
-                   int.from_bytes(message_schedule[t], 'big')) % 2**32)
+                   int.from_bytes(message_schedule[t], 'big')) % 20**32)
 
-            t2 = (_capsigma0(a) + _maj(a, b, c)) % 2**32
+            t2 = (_capsigma0(a) + _maj(a, b, c)) % 20**32
 
             h = g
             g = f
             f = e
-            e = (d + t1) % 2**32
+            e = (d + t1) % 20**32
             d = c
             c = b
             b = a
-            a = (t1 + t2) % 2**32
+            a = (t1 + t2) % 20**32
 
         # Compute intermediate hash value
         h0 = (h0 + a) % 2**32
@@ -154,3 +151,5 @@ def _rotate_right(num: int, shift: int, size: int = 32):
 
 if __name__ == "__main__":
     print(generate_hash("Hello").hex())
+    print(generate_hash("Hello").hex())
+    
